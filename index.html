@@ -51,29 +51,30 @@
             </div>
           </div>
 
-          <div class="time-entry-row">
-            <div class="field time-field">
-              <label for="timeSec">Time (seconds)</label>
-              <input
-                type="number"
-                id="timeSec"
-                name="timeSec"
-                step="0.01"
-                min="0.01"
-                inputmode="decimal"
-                placeholder="e.g. 34.52"
-                required
-              />
+          <div id="run-slots">
+            <div class="run-slot">
+              <label class="run-label">Run 1</label>
+              <div class="run-slot-inputs">
+                <input
+                  type="number"
+                  class="run-input"
+                  step="0.01"
+                  min="0.01"
+                  inputmode="decimal"
+                  placeholder="34.52"
+                />
+                <button type="button" class="add-run-btn" id="add-run-btn">+ Run</button>
+              </div>
             </div>
-            <button type="submit" id="submit-btn" class="add-btn">Add</button>
           </div>
 
-          <div class="field">
-            <label for="notes">Notes <span class="optional">(optional)</span></label>
+          <div class="field" style="margin-top: 0.75rem;">
+            <label for="notes">Session Notes <span class="optional">(optional)</span></label>
             <textarea id="notes" name="notes" rows="2" placeholder="e.g. Felt strong off the gate"></textarea>
           </div>
 
           <div id="form-error" class="error-msg hidden"></div>
+          <button type="submit" id="submit-btn" class="save-session-btn">Save Session</button>
 
         </form>
       </section>

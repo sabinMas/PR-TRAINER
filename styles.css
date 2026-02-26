@@ -322,40 +322,73 @@ button[type="submit"]:disabled {
   margin-bottom: 1rem;
 }
 
-.time-entry-row {
+/* ===== Run Slots ===== */
+.run-slot {
+  margin-bottom: 0.6rem;
+}
+
+.run-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.run-slot-inputs {
   display: flex;
   gap: 0.5rem;
-  align-items: flex-end;
-  margin-bottom: 0.875rem;
+  align-items: center;
 }
 
-.time-field {
+.run-slot-inputs .run-input {
   flex: 1;
-  margin-bottom: 0;
 }
 
-.add-btn {
+.add-run-btn {
   flex-shrink: 0;
-  padding: 0.65rem 1.25rem;
+  padding: 0.55rem 0.8rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.add-run-btn:active {
+  background: rgba(139,26,46,0.08);
+  border-color: var(--accent);
+}
+
+/* ===== Save Session Button ===== */
+.save-session-btn {
+  display: block;
+  margin: 0.75rem auto 0;
+  padding: 0.6rem 2.25rem;
   background: var(--accent);
   color: #ffffff;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
   -webkit-tap-highlight-color: transparent;
-  white-space: nowrap;
-  align-self: flex-end;
 }
 
-.add-btn:active {
+.save-session-btn:active {
   background: var(--accent-dark);
   transform: scale(0.98);
 }
 
-.add-btn:disabled {
+.save-session-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

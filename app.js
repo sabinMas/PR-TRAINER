@@ -14,6 +14,8 @@ const USER_ID = getUserId();
 let entries = [];
 let currentTab = 'log';
 let currentPeriod = '7d';
+let runCount = 1;
+const MAX_RUNS = 10;
 
 // ===== DOM =====
 const form        = document.getElementById('entry-form');
@@ -28,7 +30,8 @@ const historyListEl  = document.getElementById('history-list');
 document.addEventListener('DOMContentLoaded', () => {
   setDefaultDate();
   loadEntries();
-  form.addEventListener('submit', handleAddSprint);
+  form.addEventListener('submit', handleSaveSession);
+  document.getElementById('add-run-btn').addEventListener('click', addRunSlot);
 
   // Tab nav
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -75,55 +78,108 @@ async function loadEntries() {
   }
 }
 
-async function handleAddSprint(e) {
+async function handleSaveSession(e) {
   e.preventDefault();
   hideError();
 
-  const timeSec = parseFloat(document.getElementById('timeSec').value);
-  if (!timeSec || timeSec <= 0) {
-    showError('Please enter a valid time greater than 0.');
+  const times = [...document.querySelectorAll('.run-input')]
+    .map(input => parseFloat(input.value))
+    .filter(val => val > 0);
+
+  if (!times.length) {
+    showError('Please enter at least one run time.');
     return;
   }
 
-  const payload = {
-    userId:   USER_ID,
-    type:     document.getElementById('type').value,
-    timeSec,
-    date:     document.getElementById('date').value,
-    location: document.getElementById('location').value.trim(),
-    notes:    document.getElementById('notes').value.trim(),
-  };
+  const type     = document.getElementById('type').value;
+  const date     = document.getElementById('date').value;
+  const location = document.getElementById('location').value.trim();
+  const notes    = document.getElementById('notes').value.trim();
 
   submitBtn.disabled    = true;
-  submitBtn.textContent = '…';
+  submitBtn.textContent = 'Saving…';
 
   try {
-    const res = await fetch('/api/entries', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(payload),
-    });
+    const results = await Promise.all(
+      times.map(timeSec =>
+        fetch('/api/entries', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ userId: USER_ID, type, timeSec, date, location, notes }),
+        }).then(res => {
+          if (!res.ok) throw new Error('Failed to save a run.');
+          return res.json();
+        })
+      )
+    );
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || 'Failed to save entry.');
-    }
+    results.forEach(created => entries.unshift(created));
 
-    const created = await res.json();
-    entries.unshift(created);
-
-    // Clear only the time and notes — keep session fields intact
-    document.getElementById('timeSec').value = '';
-    document.getElementById('notes').value   = '';
-    document.getElementById('timeSec').focus();
-
+    resetRunSlots();
+    document.getElementById('notes').value = '';
     renderSessionPanel();
   } catch (err) {
     showError(err.message || 'Something went wrong. Please try again.');
   } finally {
     submitBtn.disabled    = false;
-    submitBtn.textContent = 'Add';
+    submitBtn.textContent = 'Save Session';
   }
+}
+
+// ===== Run Slots =====
+function addRunSlot() {
+  if (runCount >= MAX_RUNS) return;
+
+  // Remove the + Run button from the current last slot
+  const existingBtn = document.getElementById('add-run-btn');
+  if (existingBtn) existingBtn.remove();
+
+  runCount++;
+
+  const slot = document.createElement('div');
+  slot.className = 'run-slot';
+  slot.innerHTML = `
+    <label class="run-label">Run ${runCount}</label>
+    <div class="run-slot-inputs">
+      <input
+        type="number"
+        class="run-input"
+        step="0.01"
+        min="0.01"
+        inputmode="decimal"
+        placeholder="34.52"
+      />
+      ${runCount < MAX_RUNS ? '<button type="button" class="add-run-btn" id="add-run-btn">+ Run</button>' : ''}
+    </div>
+  `;
+
+  document.getElementById('run-slots').appendChild(slot);
+
+  const newBtn = slot.querySelector('.add-run-btn');
+  if (newBtn) newBtn.addEventListener('click', addRunSlot);
+
+  slot.querySelector('.run-input').focus();
+}
+
+function resetRunSlots() {
+  runCount = 1;
+  document.getElementById('run-slots').innerHTML = `
+    <div class="run-slot">
+      <label class="run-label">Run 1</label>
+      <div class="run-slot-inputs">
+        <input
+          type="number"
+          class="run-input"
+          step="0.01"
+          min="0.01"
+          inputmode="decimal"
+          placeholder="34.52"
+        />
+        <button type="button" class="add-run-btn" id="add-run-btn">+ Run</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('add-run-btn').addEventListener('click', addRunSlot);
 }
 
 // ===== Session Panel =====
