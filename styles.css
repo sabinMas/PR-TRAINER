@@ -69,7 +69,8 @@ main {
 }
 
 .card h2,
-#entries-section h2 {
+#entries-section h2,
+#history-section h2 {
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
@@ -289,9 +290,223 @@ button[type="submit"]:disabled {
   margin-top: 0.2rem;
 }
 
+/* ===== Tab Nav ===== */
+.tab-nav {
+  display: flex;
+  background: var(--header-bg);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.7rem 0;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #b0a9a2;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-btn.active {
+  color: #ffffff;
+  border-bottom-color: var(--accent);
+}
+
+/* ===== Session Setup ===== */
+.session-fields {
+  margin-bottom: 1rem;
+}
+
+.time-entry-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  margin-bottom: 0.875rem;
+}
+
+.time-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.add-btn {
+  flex-shrink: 0;
+  padding: 0.65rem 1.25rem;
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.add-btn:active {
+  background: var(--accent-dark);
+  transform: scale(0.98);
+}
+
+.add-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Session Panel ===== */
+#session-panel {
+  padding: 1rem 1.25rem;
+}
+
+.session-summary {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.session-summary strong {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.session-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.session-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.session-list li:last-child {
+  border-bottom: none;
+}
+
+.session-num {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.session-time {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.session-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ===== Period Filter ===== */
+.period-filter {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 0 0;
+}
+
+.period-btn {
+  flex: 1;
+  padding: 0.45rem 0.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.period-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+/* ===== History Section ===== */
+#history-section h2 {
+  padding: 0.75rem 0.1rem 0.5rem;
+}
+
+#history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+}
+
+/* ===== Day Card ===== */
+.day-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.day-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.day-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.day-count {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.day-avg {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.day-pr {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-left: auto;
+}
+
 /* ===== Responsive tweaks ===== */
 @media (max-width: 360px) {
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .period-filter {
+    flex-wrap: wrap;
   }
 }

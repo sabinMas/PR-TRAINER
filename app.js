@@ -12,39 +12,70 @@ const USER_ID = getUserId();
 
 // ===== State =====
 let entries = [];
+let currentTab = 'log';
+let currentPeriod = '7d';
 
 // ===== DOM =====
 const form        = document.getElementById('entry-form');
 const submitBtn   = document.getElementById('submit-btn');
 const formError   = document.getElementById('form-error');
-const statusEl    = document.getElementById('entries-status');
-const listEl      = document.getElementById('entries-list');
+const sessionSummary = document.getElementById('session-summary');
+const sessionList    = document.getElementById('session-list');
+const historyStatus  = document.getElementById('history-status');
+const historyListEl  = document.getElementById('history-list');
 
 // ===== Boot =====
 document.addEventListener('DOMContentLoaded', () => {
   setDefaultDate();
   loadEntries();
-  form.addEventListener('submit', handleSubmit);
+  form.addEventListener('submit', handleAddSprint);
+
+  // Tab nav
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // Period filter
+  document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentPeriod = btn.dataset.period;
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderHistoryTab();
+    });
+  });
 });
 
 function setDefaultDate() {
   document.getElementById('date').value = new Date().toISOString().split('T')[0];
 }
 
+// ===== Tab Switching =====
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.getElementById('tab-log').classList.toggle('hidden', tab !== 'log');
+  document.getElementById('tab-history').classList.toggle('hidden', tab !== 'history');
+
+  if (tab === 'history') renderHistoryTab();
+  if (tab === 'log')     renderSessionPanel();
+}
+
 // ===== API =====
 async function loadEntries() {
-  showStatus('Loading...');
   try {
     const res = await fetch('/api/entries?userId=' + encodeURIComponent(USER_ID));
     if (!res.ok) throw new Error('Server error ' + res.status);
     entries = await res.json();
-    renderAll();
+    renderSessionPanel();
   } catch {
-    showStatus('Could not load entries. Check your connection and try refreshing.');
+    sessionSummary.textContent = 'Could not load entries. Check your connection.';
   }
 }
 
-async function handleSubmit(e) {
+async function handleAddSprint(e) {
   e.preventDefault();
   hideError();
 
@@ -64,7 +95,7 @@ async function handleSubmit(e) {
   };
 
   submitBtn.disabled    = true;
-  submitBtn.textContent = 'Saving…';
+  submitBtn.textContent = '…';
 
   try {
     const res = await fetch('/api/entries', {
@@ -80,51 +111,67 @@ async function handleSubmit(e) {
 
     const created = await res.json();
     entries.unshift(created);
-    renderAll();
-    form.reset();
-    setDefaultDate();
+
+    // Clear only the time and notes — keep session fields intact
+    document.getElementById('timeSec').value = '';
+    document.getElementById('notes').value   = '';
+    document.getElementById('timeSec').focus();
+
+    renderSessionPanel();
   } catch (err) {
     showError(err.message || 'Something went wrong. Please try again.');
   } finally {
     submitBtn.disabled    = false;
-    submitBtn.textContent = 'Save Entry';
+    submitBtn.textContent = 'Add';
   }
 }
 
-// ===== Stat Helpers =====
-function byType(type) {
-  return entries.filter(e => e.type === type);
+// ===== Session Panel =====
+function renderSessionPanel() {
+  const date = document.getElementById('date').value;
+  const type = document.getElementById('type').value;
+
+  const sessionEntries = getSessionEntries(date, type);
+
+  if (!sessionEntries.length) {
+    sessionSummary.textContent = 'No sprints logged yet for this session';
+    sessionList.innerHTML = '';
+    return;
+  }
+
+  const avg   = average(sessionEntries);
+  const count = sessionEntries.length;
+  const label = type === 'block' ? 'block sprints' : 'sprints';
+  sessionSummary.innerHTML =
+    `<strong>${count}</strong> ${label} &nbsp;·&nbsp; Avg <strong>${fmt(avg)}</strong>`;
+
+  // Show in chronological order (earliest first) for the session list
+  const ordered = [...sessionEntries].reverse();
+  sessionList.innerHTML = ordered.map((e, i) =>
+    `<li><span class="session-num">${i + 1}</span><span class="session-time">${fmt(e.time_sec)}</span>${e.notes ? `<span class="session-note">${esc(e.notes)}</span>` : ''}</li>`
+  ).join('');
 }
 
-function average(list) {
-  if (!list.length) return null;
-  return list.reduce((sum, e) => sum + e.time_sec, 0) / list.length;
+// Re-render session panel when type or date changes
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('type').addEventListener('change', renderSessionPanel);
+  document.getElementById('date').addEventListener('change', renderSessionPanel);
+});
+
+function getSessionEntries(date, type) {
+  return entries.filter(e => e.date === date && e.type === type);
 }
 
-function pr(list) {
-  if (!list.length) return null;
-  return list.reduce((best, e) => (e.time_sec < best.time_sec ? e : best));
+// ===== History Tab =====
+function renderHistoryTab() {
+  const filtered = filterByPeriod(entries, currentPeriod);
+  renderStats(filtered);
+  renderHistoryList(filtered);
 }
 
-function fmt(sec) {
-  return sec.toFixed(2) + 's';
-}
-
-function fmtDate(str) {
-  if (!str) return '';
-  const [y, m, d] = str.split('-');
-  return `${parseInt(m)}/${parseInt(d)}/${y}`;
-}
-
-// ===== Render =====
-function renderAll() {
-  renderStats();
-  renderEntries();
-}
-
-function renderStats() {
-  const sprints = byType('sprint');
-  const blocks  = byType('block');
+function renderStats(list) {
+  const sprints = list.filter(e => e.type === 'sprint');
+  const blocks  = list.filter(e => e.type === 'block');
 
   const sprintAvg = average(sprints);
   const blockAvg  = average(blocks);
@@ -153,44 +200,100 @@ function renderStats() {
   }
 }
 
-function renderEntries() {
-  if (!entries.length) {
-    showStatus('No entries yet. Log your first sprint above!');
-    listEl.innerHTML = '';
+function renderHistoryList(list) {
+  if (!list.length) {
+    historyStatus.textContent = 'No entries in this period.';
+    historyStatus.classList.remove('hidden');
+    historyListEl.innerHTML = '';
     return;
   }
 
-  hideStatus();
+  historyStatus.classList.add('hidden');
 
-  listEl.innerHTML = entries.map(entry => {
-    const isBlock  = entry.type === 'block';
-    const badge    = isBlock ? 'badge-block' : 'badge-sprint';
-    const label    = isBlock ? 'Block' : 'Sprint';
-    const meta     = [fmtDate(entry.date), entry.location].filter(Boolean).join(' · ');
+  const grouped = groupEntriesByDate(list);
+
+  historyListEl.innerHTML = grouped.map(({ date, sprints, blocks }) => {
+    const sprintRow = sprints.length
+      ? `<div class="day-stat-row">
+           <span class="entry-badge badge-sprint">Sprint</span>
+           <span class="day-count">${sprints.length} runs</span>
+           <span class="day-avg">Avg ${fmt(average(sprints))}</span>
+           <span class="day-pr">PR ${fmt(pr(sprints).time_sec)}</span>
+         </div>`
+      : '';
+
+    const blockRow = blocks.length
+      ? `<div class="day-stat-row">
+           <span class="entry-badge badge-block">Block</span>
+           <span class="day-count">${blocks.length} runs</span>
+           <span class="day-avg">Avg ${fmt(average(blocks))}</span>
+           <span class="day-pr">PR ${fmt(pr(blocks).time_sec)}</span>
+         </div>`
+      : '';
 
     return `
-      <div class="entry-card">
-        <span class="entry-badge ${badge}">${label}</span>
-        <div class="entry-body">
-          <span class="entry-time">${fmt(entry.time_sec)}</span>
-          ${meta   ? `<span class="entry-meta">${esc(meta)}</span>`       : ''}
-          ${entry.notes ? `<span class="entry-notes">${esc(entry.notes)}</span>` : ''}
-        </div>
+      <div class="day-card">
+        <div class="day-header">${fmtDateLong(date)}</div>
+        ${sprintRow}
+        ${blockRow}
       </div>
     `;
   }).join('');
 }
 
+// ===== Stat Helpers =====
+function average(list) {
+  if (!list.length) return null;
+  return list.reduce((sum, e) => sum + e.time_sec, 0) / list.length;
+}
+
+function pr(list) {
+  if (!list.length) return null;
+  return list.reduce((best, e) => (e.time_sec < best.time_sec ? e : best));
+}
+
+// ===== Period / Grouping Helpers =====
+function filterByPeriod(list, period) {
+  if (period === 'all') return list;
+
+  const days  = period === '7d' ? 7 : 30;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+
+  return list.filter(e => e.date >= cutoffStr);
+}
+
+function groupEntriesByDate(list) {
+  const map = {};
+  for (const e of list) {
+    if (!map[e.date]) map[e.date] = { date: e.date, sprints: [], blocks: [] };
+    if (e.type === 'sprint') map[e.date].sprints.push(e);
+    else                      map[e.date].blocks.push(e);
+  }
+  // Sort newest first
+  return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+// ===== Format Helpers =====
+function fmt(sec) {
+  return sec.toFixed(2) + 's';
+}
+
+function fmtDate(str) {
+  if (!str) return '';
+  const [y, m, d] = str.split('-');
+  return `${parseInt(m)}/${parseInt(d)}/${y}`;
+}
+
+function fmtDateLong(str) {
+  if (!str) return '';
+  const [y, m, d] = str.split('-');
+  const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 // ===== UI Helpers =====
-function showStatus(msg) {
-  statusEl.textContent = msg;
-  statusEl.classList.remove('hidden');
-}
-
-function hideStatus() {
-  statusEl.classList.add('hidden');
-}
-
 function showError(msg) {
   formError.textContent = msg;
   formError.classList.remove('hidden');

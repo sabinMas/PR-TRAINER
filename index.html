@@ -17,92 +17,120 @@
     <p class="subtitle">Log your sprint and block times</p>
   </header>
 
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="log">Log</button>
+    <button class="tab-btn" data-tab="history">History</button>
+  </nav>
+
   <main>
 
-    <!-- ===== New Entry Form ===== -->
-    <section class="card" id="form-section">
-      <h2>New Entry</h2>
-      <form id="entry-form" novalidate>
+    <!-- ===== LOG TAB ===== -->
+    <div id="tab-log">
 
-        <div class="field">
-          <label for="type">Type</label>
-          <select id="type" name="type" required>
-            <option value="sprint">Sprint</option>
-            <option value="block">Block Sprint</option>
-          </select>
-        </div>
+      <section class="card" id="form-section">
+        <h2>Session Setup</h2>
+        <form id="entry-form" novalidate>
 
-        <div class="field">
-          <label for="timeSec">Time (seconds)</label>
-          <input
-            type="number"
-            id="timeSec"
-            name="timeSec"
-            step="0.01"
-            min="0.01"
-            inputmode="decimal"
-            placeholder="e.g. 34.52"
-            required
-          />
-        </div>
+          <div class="session-fields">
+            <div class="field">
+              <label for="type">Type</label>
+              <select id="type" name="type" required>
+                <option value="sprint">Sprint</option>
+                <option value="block">Block Sprint</option>
+              </select>
+            </div>
 
-        <div class="field">
-          <label for="date">Date</label>
-          <input type="date" id="date" name="date" required />
-        </div>
+            <div class="field">
+              <label for="date">Date</label>
+              <input type="date" id="date" name="date" required />
+            </div>
 
-        <div class="field">
-          <label for="location">Location <span class="optional">(optional)</span></label>
-          <input type="text" id="location" name="location" placeholder="e.g. Home track" />
-        </div>
+            <div class="field">
+              <label for="location">Location <span class="optional">(optional)</span></label>
+              <input type="text" id="location" name="location" placeholder="e.g. Home track" />
+            </div>
+          </div>
 
-        <div class="field">
-          <label for="notes">Notes <span class="optional">(optional)</span></label>
-          <textarea id="notes" name="notes" rows="2" placeholder="e.g. Felt strong off the gate"></textarea>
-        </div>
+          <div class="time-entry-row">
+            <div class="field time-field">
+              <label for="timeSec">Time (seconds)</label>
+              <input
+                type="number"
+                id="timeSec"
+                name="timeSec"
+                step="0.01"
+                min="0.01"
+                inputmode="decimal"
+                placeholder="e.g. 34.52"
+                required
+              />
+            </div>
+            <button type="submit" id="submit-btn" class="add-btn">Add</button>
+          </div>
 
-        <div id="form-error" class="error-msg hidden"></div>
-        <button type="submit" id="submit-btn">Save Entry</button>
+          <div class="field">
+            <label for="notes">Notes <span class="optional">(optional)</span></label>
+            <textarea id="notes" name="notes" rows="2" placeholder="e.g. Felt strong off the gate"></textarea>
+          </div>
 
-      </form>
-    </section>
+          <div id="form-error" class="error-msg hidden"></div>
 
-    <!-- ===== Stats ===== -->
-    <section class="card" id="stats-section">
-      <h2>Stats</h2>
-      <div class="stats-grid">
+        </form>
+      </section>
 
-        <div class="stat-block">
-          <span class="stat-label">Sprint Avg</span>
-          <span class="stat-value" id="sprint-avg">—</span>
-        </div>
+      <!-- Session Panel -->
+      <section class="card" id="session-panel">
+        <div id="session-summary" class="session-summary">No sprints logged yet</div>
+        <ol id="session-list" class="session-list"></ol>
+      </section>
 
-        <div class="stat-block">
-          <span class="stat-label">Block Avg</span>
-          <span class="stat-value" id="block-avg">—</span>
-        </div>
+    </div><!-- /#tab-log -->
 
-        <div class="stat-block pr">
-          <span class="stat-label">Sprint PR</span>
-          <span class="stat-value" id="sprint-pr">—</span>
-          <span class="stat-detail" id="sprint-pr-detail"></span>
-        </div>
+    <!-- ===== HISTORY TAB ===== -->
+    <div id="tab-history" class="hidden">
 
-        <div class="stat-block pr">
-          <span class="stat-label">Block PR</span>
-          <span class="stat-value" id="block-pr">—</span>
-          <span class="stat-detail" id="block-pr-detail"></span>
-        </div>
-
+      <div class="period-filter">
+        <button class="period-btn active" data-period="7d">Last 7 days</button>
+        <button class="period-btn" data-period="30d">Last 30 days</button>
+        <button class="period-btn" data-period="all">All time</button>
       </div>
-    </section>
 
-    <!-- ===== Entries List ===== -->
-    <section id="entries-section">
-      <h2>History</h2>
-      <div id="entries-status" class="status-msg">Loading...</div>
-      <div id="entries-list"></div>
-    </section>
+      <section class="card" id="stats-section">
+        <h2>Stats</h2>
+        <div class="stats-grid">
+
+          <div class="stat-block">
+            <span class="stat-label">Sprint Avg</span>
+            <span class="stat-value" id="sprint-avg">—</span>
+          </div>
+
+          <div class="stat-block">
+            <span class="stat-label">Block Avg</span>
+            <span class="stat-value" id="block-avg">—</span>
+          </div>
+
+          <div class="stat-block pr">
+            <span class="stat-label">Sprint PR</span>
+            <span class="stat-value" id="sprint-pr">—</span>
+            <span class="stat-detail" id="sprint-pr-detail"></span>
+          </div>
+
+          <div class="stat-block pr">
+            <span class="stat-label">Block PR</span>
+            <span class="stat-value" id="block-pr">—</span>
+            <span class="stat-detail" id="block-pr-detail"></span>
+          </div>
+
+        </div>
+      </section>
+
+      <section id="history-section">
+        <h2>Training Days</h2>
+        <div id="history-status" class="status-msg hidden"></div>
+        <div id="history-list"></div>
+      </section>
+
+    </div><!-- /#tab-history -->
 
   </main>
 
