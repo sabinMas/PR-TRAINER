@@ -210,9 +210,11 @@ function renderHistoryList(list) {
 
   historyStatus.classList.add('hidden');
 
-  const grouped = groupEntriesByDate(list);
+  const grouped = currentPeriod === 'all'
+    ? groupEntriesByMonth(list)
+    : groupEntriesByDate(list);
 
-  historyListEl.innerHTML = grouped.map(({ date, sprints, blocks }) => {
+  historyListEl.innerHTML = grouped.map(({ label, sprints, blocks }) => {
     const sprintRow = sprints.length
       ? `<div class="day-stat-row">
            <span class="entry-badge badge-sprint">Sprint</span>
@@ -233,7 +235,7 @@ function renderHistoryList(list) {
 
     return `
       <div class="day-card">
-        <div class="day-header">${fmtDateLong(date)}</div>
+        <div class="day-header">${label}</div>
         ${sprintRow}
         ${blockRow}
       </div>
@@ -267,12 +269,22 @@ function filterByPeriod(list, period) {
 function groupEntriesByDate(list) {
   const map = {};
   for (const e of list) {
-    if (!map[e.date]) map[e.date] = { date: e.date, sprints: [], blocks: [] };
+    if (!map[e.date]) map[e.date] = { key: e.date, label: fmtDateLong(e.date), sprints: [], blocks: [] };
     if (e.type === 'sprint') map[e.date].sprints.push(e);
     else                      map[e.date].blocks.push(e);
   }
-  // Sort newest first
-  return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
+  return Object.values(map).sort((a, b) => b.key.localeCompare(a.key));
+}
+
+function groupEntriesByMonth(list) {
+  const map = {};
+  for (const e of list) {
+    const monthKey = e.date.slice(0, 7); // YYYY-MM
+    if (!map[monthKey]) map[monthKey] = { key: monthKey, label: fmtMonth(monthKey), sprints: [], blocks: [] };
+    if (e.type === 'sprint') map[monthKey].sprints.push(e);
+    else                      map[monthKey].blocks.push(e);
+  }
+  return Object.values(map).sort((a, b) => b.key.localeCompare(a.key));
 }
 
 // ===== Format Helpers =====
@@ -291,6 +303,13 @@ function fmtDateLong(str) {
   const [y, m, d] = str.split('-');
   const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function fmtMonth(yearMonth) {
+  if (!yearMonth) return '';
+  const [y, m] = yearMonth.split('-');
+  const date = new Date(parseInt(y), parseInt(m) - 1, 1);
+  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
 // ===== UI Helpers =====
