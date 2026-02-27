@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(cd:*)",
-      "WebFetch(domain:pr-trainer.vercel.app)"
+      "WebFetch(domain:pr-trainer.vercel.app)",
+      "Bash(cd /c/Users/mason/Documents/GitHub/PR-TRAINER && vercel dev --yes 2>&1)",
+      "Bash(git:*)"
     ]
   }
 }
