@@ -51,7 +51,7 @@ module.exports = async function handler(req, res) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const from   = process.env.RESEND_FROM_EMAIL || 'Sprint Tracker <onboarding@resend.dev>';
 
-    await resend.emails.send({
+    const { error: sendError } = await resend.emails.send({
       from,
       to: normalizedEmail,
       subject: 'Your Sprint Tracker sign-in link',
@@ -77,6 +77,11 @@ module.exports = async function handler(req, res) {
         </div>
       `,
     });
+
+    if (sendError) {
+      console.error('[auth/request] Resend error:', sendError);
+      return res.status(500).json({ error: 'Failed to send sign-in email. Please try again.' });
+    }
 
     return res.status(200).json({ ok: true });
   } catch (err) {
