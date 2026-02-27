@@ -15,14 +15,50 @@
   <header>
     <h1>Sprint Tracker</h1>
     <p class="subtitle">Log your sprint and block times</p>
+    <div id="user-bar" class="user-bar hidden">
+      <span id="user-email-display" class="user-email"></span>
+      <button id="logout-btn" class="logout-btn">Sign out</button>
+    </div>
   </header>
 
-  <nav class="tab-nav">
+  <!-- ===== LOGIN SCREEN ===== -->
+  <div id="login-screen" class="login-screen hidden">
+    <div class="login-card">
+      <h2 class="login-heading">Sign In</h2>
+      <p class="login-subtitle">Enter your email and we'll send you a sign-in link — no password needed.</p>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="login-email">Email address</label>
+          <input
+            type="email"
+            id="login-email"
+            name="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            inputmode="email"
+            required
+          />
+        </div>
+        <div id="login-error" class="error-msg hidden"></div>
+        <div id="login-success" class="success-msg hidden"></div>
+        <button type="submit" id="login-btn">Send Sign-In Link</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== VERIFYING SCREEN ===== -->
+  <div id="verify-screen" class="login-screen hidden">
+    <div class="login-card verify-card">
+      <p id="verify-msg" class="verify-msg">Signing you in…</p>
+    </div>
+  </div>
+
+  <nav class="tab-nav hidden" id="main-nav">
     <button class="tab-btn active" data-tab="log">Log</button>
     <button class="tab-btn" data-tab="history">History</button>
   </nav>
 
-  <main>
+  <main class="hidden" id="main-content">
 
     <!-- ===== LOG TAB ===== -->
     <div id="tab-log">
