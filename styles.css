@@ -169,7 +169,7 @@ button[type="submit"]:disabled {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 /* ===== Stats ===== */
