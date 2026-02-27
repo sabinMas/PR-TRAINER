@@ -4,6 +4,6 @@
   "private": true,
   "dependencies": {
     "@vercel/postgres": "^0.10.0",
-    "resend": "^3.5.0"
+    "bcryptjs": "^2.4.3"
   }
 }

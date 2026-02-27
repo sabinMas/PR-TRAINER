@@ -15,18 +15,10 @@ CREATE TABLE IF NOT EXISTS entries (
 CREATE INDEX IF NOT EXISTS idx_entries_user_id    ON entries (user_id);
 CREATE INDEX IF NOT EXISTS idx_entries_created_at ON entries (created_at DESC);
 
--- Auth tables for email magic-link sign-in
+-- Auth: username/password accounts
 CREATE TABLE IF NOT EXISTS users (
-  id         TEXT PRIMARY KEY,
-  email      TEXT NOT NULL UNIQUE,
-  created_at TEXT NOT NULL
+  id            TEXT PRIMARY KEY,
+  username      TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at    TEXT NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS magic_tokens (
-  token      TEXT    PRIMARY KEY,
-  user_id    TEXT    NOT NULL REFERENCES users(id),
-  expires_at TEXT    NOT NULL,
-  used       BOOLEAN NOT NULL DEFAULT FALSE
-);
-
-CREATE INDEX IF NOT EXISTS idx_magic_tokens_user_id ON magic_tokens (user_id);

@@ -16,7 +16,7 @@
     <h1>Sprint Tracker</h1>
     <p class="subtitle">Log your sprint and block times</p>
     <div id="user-bar" class="user-bar hidden">
-      <span id="user-email-display" class="user-email"></span>
+      <span id="user-display-name" class="user-email"></span>
       <button id="logout-btn" class="logout-btn">Sign out</button>
     </div>
   </header>
@@ -24,32 +24,38 @@
   <!-- ===== LOGIN SCREEN ===== -->
   <div id="login-screen" class="login-screen hidden">
     <div class="login-card">
-      <h2 class="login-heading">Sign In</h2>
-      <p class="login-subtitle">Enter your email and we'll send you a sign-in link — no password needed.</p>
+      <h2 class="login-heading" id="login-heading">Sign In</h2>
       <form id="login-form" novalidate>
         <div class="field">
-          <label for="login-email">Email address</label>
+          <label for="login-username">Username</label>
           <input
-            type="email"
-            id="login-email"
-            name="email"
-            placeholder="you@example.com"
-            autocomplete="email"
-            inputmode="email"
+            type="text"
+            id="login-username"
+            name="username"
+            placeholder="yourname"
+            autocomplete="username"
+            autocapitalize="none"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input
+            type="password"
+            id="login-password"
+            name="password"
+            placeholder="••••••"
+            autocomplete="current-password"
             required
           />
         </div>
         <div id="login-error" class="error-msg hidden"></div>
-        <div id="login-success" class="success-msg hidden"></div>
-        <button type="submit" id="login-btn">Send Sign-In Link</button>
+        <button type="submit" id="login-btn">Sign In</button>
       </form>
-    </div>
-  </div>
-
-  <!-- ===== VERIFYING SCREEN ===== -->
-  <div id="verify-screen" class="login-screen hidden">
-    <div class="login-card verify-card">
-      <p id="verify-msg" class="verify-msg">Signing you in…</p>
+      <p class="login-toggle">
+        <span id="login-toggle-text">Don't have an account?</span>
+        <button type="button" id="login-toggle-btn" class="link-btn">Create one</button>
+      </p>
     </div>
   </div>
 

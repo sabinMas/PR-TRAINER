@@ -601,26 +601,23 @@ button[type="submit"]:disabled {
   margin-top: 0.5rem;
 }
 
-/* ===== Success message ===== */
-.success-msg {
-  font-size: 0.875rem;
-  color: #1a6b3a;
-  padding: 0.5rem 0.75rem;
-  background: #e6f4ec;
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
-}
-
-/* ===== Verify screen ===== */
-.verify-card {
+.login-toggle {
   text-align: center;
-  padding: 2.5rem 1.5rem;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
-.verify-msg {
-  font-size: 1rem;
-  color: var(--text-muted);
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ===== Responsive tweaks ===== */

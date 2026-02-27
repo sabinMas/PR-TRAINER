@@ -1,18 +1,18 @@
 // ===== Auth State =====
 function getAuthState() {
-  const userId = localStorage.getItem('authUserId');
-  const email  = localStorage.getItem('authEmail');
-  return (userId && email) ? { userId, email } : null;
+  const userId   = localStorage.getItem('authUserId');
+  const username = localStorage.getItem('authUsername');
+  return (userId && username) ? { userId, username } : null;
 }
 
-function setAuthState(userId, email) {
+function setAuthState(userId, username) {
   localStorage.setItem('authUserId', userId);
-  localStorage.setItem('authEmail', email);
+  localStorage.setItem('authUsername', username);
 }
 
 function clearAuthState() {
   localStorage.removeItem('authUserId');
-  localStorage.removeItem('authEmail');
+  localStorage.removeItem('authUsername');
 }
 
 // ===== State =====
@@ -22,6 +22,9 @@ let currentTab = 'log';
 let currentPeriod = '7d';
 let runCount = 1;
 const MAX_RUNS = 10;
+
+// login form mode: 'login' | 'register'
+let authMode = 'login';
 
 // ===== DOM =====
 const form           = document.getElementById('entry-form');
@@ -33,115 +36,87 @@ const historyStatus  = document.getElementById('history-status');
 const historyListEl  = document.getElementById('history-list');
 
 // ===== Boot =====
-document.addEventListener('DOMContentLoaded', async () => {
-  // Check if arriving from a magic link
-  const params = new URLSearchParams(window.location.search);
-  const token  = params.get('token');
-
-  if (token) {
-    history.replaceState(null, '', window.location.pathname);
-    await handleTokenVerification(token);
-    return;
-  }
-
+document.addEventListener('DOMContentLoaded', () => {
   const auth = getAuthState();
   if (!auth) {
     showLoginScreen();
     return;
   }
-
   startApp(auth);
 });
-
-// ===== Token Verification =====
-async function handleTokenVerification(token) {
-  showVerifyScreen('Signing you in…');
-
-  try {
-    const res  = await fetch('/api/auth/verify?token=' + encodeURIComponent(token));
-    const data = await res.json();
-
-    if (!res.ok) {
-      showLoginScreenWithError(data.error || 'Invalid sign-in link. Please request a new one.');
-      return;
-    }
-
-    setAuthState(data.userId, data.email);
-    startApp({ userId: data.userId, email: data.email });
-  } catch {
-    showLoginScreenWithError('Could not verify sign-in link. Please check your connection and try again.');
-  }
-}
 
 // ===== Auth UI =====
 function showLoginScreen() {
   document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('verify-screen').classList.add('hidden');
   document.getElementById('main-nav').classList.add('hidden');
   document.getElementById('main-content').classList.add('hidden');
   document.getElementById('user-bar').classList.add('hidden');
   setupLoginForm();
 }
 
-function showLoginScreenWithError(msg) {
-  showLoginScreen();
-  const loginError = document.getElementById('login-error');
-  loginError.textContent = msg;
-  loginError.classList.remove('hidden');
-}
-
-function showVerifyScreen(msg) {
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('verify-screen').classList.remove('hidden');
-  document.getElementById('main-nav').classList.add('hidden');
-  document.getElementById('main-content').classList.add('hidden');
-  document.getElementById('user-bar').classList.add('hidden');
-  document.getElementById('verify-msg').textContent = msg;
-}
-
 function showAppUI(auth) {
   document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('verify-screen').classList.add('hidden');
   document.getElementById('main-nav').classList.remove('hidden');
   document.getElementById('main-content').classList.remove('hidden');
   document.getElementById('user-bar').classList.remove('hidden');
-  document.getElementById('user-email-display').textContent = auth.email;
+  document.getElementById('user-display-name').textContent = auth.username;
 }
 
-// ===== Login Form =====
+// ===== Login / Register Form =====
 function setupLoginForm() {
+  authMode = 'login';
+  updateLoginFormMode();
+
   const loginForm = document.getElementById('login-form');
-  // Replace the element to drop any previous listeners
   const fresh = loginForm.cloneNode(true);
   loginForm.parentNode.replaceChild(fresh, loginForm);
-  fresh.addEventListener('submit', handleLoginSubmit);
+  fresh.addEventListener('submit', handleAuthSubmit);
+
+  document.getElementById('login-toggle-btn').addEventListener('click', toggleAuthMode);
 }
 
-async function handleLoginSubmit(e) {
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  updateLoginFormMode();
+  document.getElementById('login-error').classList.add('hidden');
+}
+
+function updateLoginFormMode() {
+  const isRegister = authMode === 'register';
+  document.getElementById('login-heading').textContent         = isRegister ? 'Create Account' : 'Sign In';
+  document.getElementById('login-btn').textContent             = isRegister ? 'Create Account' : 'Sign In';
+  document.getElementById('login-toggle-text').textContent     = isRegister ? 'Already have an account?' : "Don't have an account?";
+  document.getElementById('login-toggle-btn').textContent      = isRegister ? 'Sign in' : 'Create one';
+  const pwInput = document.getElementById('login-password');
+  if (pwInput) pwInput.autocomplete = isRegister ? 'new-password' : 'current-password';
+}
+
+async function handleAuthSubmit(e) {
   e.preventDefault();
 
-  const email      = document.getElementById('login-email').value.trim();
-  const loginBtn   = document.getElementById('login-btn');
+  const username  = document.getElementById('login-username').value.trim();
+  const password  = document.getElementById('login-password').value;
+  const loginBtn  = document.getElementById('login-btn');
   const loginError = document.getElementById('login-error');
-  const loginSuccess = document.getElementById('login-success');
 
   loginError.classList.add('hidden');
-  loginSuccess.classList.add('hidden');
 
-  if (!email) {
-    loginError.textContent = 'Please enter your email address.';
+  if (!username || !password) {
+    loginError.textContent = 'Please enter a username and password.';
     loginError.classList.remove('hidden');
     return;
   }
 
   loginBtn.disabled    = true;
-  loginBtn.textContent = 'Sending…';
+  loginBtn.textContent = authMode === 'register' ? 'Creating…' : 'Signing in…';
+
+  const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
 
   try {
-    const res  = await fetch('/api/auth/request', {
+    const res  = await fetch(endpoint, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email }),
+      body:    JSON.stringify({ username, password }),
     });
     const data = await res.json();
 
@@ -151,15 +126,14 @@ async function handleLoginSubmit(e) {
       return;
     }
 
-    loginSuccess.textContent = `Check your inbox at ${email} for a sign-in link.`;
-    loginSuccess.classList.remove('hidden');
-    document.getElementById('login-email').value = '';
+    setAuthState(data.userId, data.username);
+    startApp({ userId: data.userId, username: data.username });
   } catch {
-    loginError.textContent = 'Could not send email. Check your connection and try again.';
+    loginError.textContent = 'Could not connect. Check your connection and try again.';
     loginError.classList.remove('hidden');
   } finally {
     loginBtn.disabled    = false;
-    loginBtn.textContent = 'Send Sign-In Link';
+    loginBtn.textContent = authMode === 'register' ? 'Create Account' : 'Sign In';
   }
 }
 
@@ -193,8 +167,8 @@ function startApp(auth) {
 
 function logout() {
   clearAuthState();
-  USER_ID  = null;
-  entries  = [];
+  USER_ID       = null;
+  entries       = [];
   currentTab    = 'log';
   currentPeriod = '7d';
   showLoginScreen();
