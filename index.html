@@ -14,7 +14,7 @@
 
   <header>
     <h1>Sprint Tracker</h1>
-    <p class="subtitle">Log your sprint and block times</p>
+    <p class="subtitle">Log your gate and block start times</p>
     <div id="user-bar" class="user-bar hidden">
       <span id="user-display-name" class="user-email"></span>
       <button id="logout-btn" class="logout-btn">Sign out</button>
@@ -77,8 +77,8 @@
             <div class="field">
               <label for="type">Type</label>
               <select id="type" name="type" required>
-                <option value="sprint">Sprint</option>
-                <option value="block">Block Sprint</option>
+                <option value="sprint">Gate Start</option>
+                <option value="block">Block Start</option>
               </select>
             </div>
 
@@ -143,23 +143,23 @@
         <div class="stats-grid">
 
           <div class="stat-block">
-            <span class="stat-label">Sprint Avg</span>
+            <span class="stat-label">Gate Start Avg</span>
             <span class="stat-value" id="sprint-avg">—</span>
           </div>
 
           <div class="stat-block">
-            <span class="stat-label">Block Avg</span>
+            <span class="stat-label">Block Start Avg</span>
             <span class="stat-value" id="block-avg">—</span>
           </div>
 
           <div class="stat-block pr">
-            <span class="stat-label">Sprint PR</span>
+            <span class="stat-label">Gate Start PR</span>
             <span class="stat-value" id="sprint-pr">—</span>
             <span class="stat-detail" id="sprint-pr-detail"></span>
           </div>
 
           <div class="stat-block pr">
-            <span class="stat-label">Block PR</span>
+            <span class="stat-label">Block Start PR</span>
             <span class="stat-value" id="block-pr">—</span>
             <span class="stat-detail" id="block-pr-detail"></span>
           </div>

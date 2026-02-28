@@ -314,14 +314,14 @@ function renderSessionPanel() {
   const sessionEntries = getSessionEntries(date, type);
 
   if (!sessionEntries.length) {
-    sessionSummary.textContent = 'No sprints logged yet for this session';
+    sessionSummary.textContent = 'No runs logged yet for this session';
     sessionList.innerHTML = '';
     return;
   }
 
   const avg   = average(sessionEntries);
   const count = sessionEntries.length;
-  const label = type === 'block' ? 'block sprints' : 'sprints';
+  const label = type === 'block' ? 'block starts' : 'gate starts';
   sessionSummary.innerHTML =
     `<strong>${count}</strong> ${label} &nbsp;·&nbsp; Avg <strong>${fmt(avg)}</strong>`;
 
@@ -390,7 +390,7 @@ function renderHistoryList(list) {
   historyListEl.innerHTML = grouped.map(({ label, sprints, blocks }) => {
     const sprintRow = sprints.length
       ? `<div class="day-stat-row">
-           <span class="entry-badge badge-sprint">Sprint</span>
+           <span class="entry-badge badge-sprint">Gate Start</span>
            <span class="day-count">${sprints.length} runs</span>
            <span class="day-avg">Avg ${fmt(average(sprints))}</span>
            <span class="day-pr">PR ${fmt(pr(sprints).time_sec)}</span>
@@ -399,7 +399,7 @@ function renderHistoryList(list) {
 
     const blockRow = blocks.length
       ? `<div class="day-stat-row">
-           <span class="entry-badge badge-block">Block</span>
+           <span class="entry-badge badge-block">Block Start</span>
            <span class="day-count">${blocks.length} runs</span>
            <span class="day-avg">Avg ${fmt(average(blocks))}</span>
            <span class="day-pr">PR ${fmt(pr(blocks).time_sec)}</span>
