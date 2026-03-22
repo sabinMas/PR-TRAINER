@@ -20,6 +20,7 @@ let USER_ID = null;
 let entries = [];
 let currentTab = 'log';
 let currentPeriod = '7d';
+let currentBikeType = 'all';
 let runCount = 1;
 const MAX_RUNS = 10;
 
@@ -161,16 +162,27 @@ function startApp(auth) {
     });
   });
 
+  document.querySelectorAll('.bike-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentBikeType = btn.dataset.bike;
+      document.querySelectorAll('.bike-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderHistoryTab();
+    });
+  });
+
   document.getElementById('type').addEventListener('change', renderSessionPanel);
   document.getElementById('date').addEventListener('change', renderSessionPanel);
+  document.getElementById('session-bike-type').addEventListener('change', renderSessionPanel);
 }
 
 function logout() {
   clearAuthState();
-  USER_ID       = null;
-  entries       = [];
-  currentTab    = 'log';
-  currentPeriod = '7d';
+  USER_ID         = null;
+  entries         = [];
+  currentTab      = 'log';
+  currentPeriod   = '7d';
+  currentBikeType = 'all';
   showLoginScreen();
 }
 
@@ -217,6 +229,7 @@ async function handleSaveSession(e) {
   }
 
   const type     = document.getElementById('type').value;
+  const bikeType = document.getElementById('session-bike-type').value;
   const date     = document.getElementById('date').value;
   const location = document.getElementById('location').value.trim();
   const notes    = document.getElementById('notes').value.trim();
@@ -230,7 +243,7 @@ async function handleSaveSession(e) {
         fetch('/api/entries', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ userId: USER_ID, type, timeSec, date, location, notes }),
+          body:    JSON.stringify({ userId: USER_ID, type, bikeType, timeSec, date, location, notes }),
         }).then(res => {
           if (!res.ok) throw new Error('Failed to save a run.');
           return res.json();
@@ -268,10 +281,10 @@ function addRunSlot() {
       <input
         type="number"
         class="run-input"
-        step="0.01"
-        min="0.01"
+        step="0.0001"
+        min="0.0001"
         inputmode="decimal"
-        placeholder="34.52"
+        placeholder="34.5210"
       />
       ${runCount < MAX_RUNS ? '<button type="button" class="add-run-btn" id="add-run-btn">+ Run</button>' : ''}
     </div>
@@ -294,10 +307,10 @@ function resetRunSlots() {
         <input
           type="number"
           class="run-input"
-          step="0.01"
-          min="0.01"
+          step="0.0001"
+          min="0.0001"
           inputmode="decimal"
-          placeholder="34.52"
+          placeholder="34.5210"
         />
         <button type="button" class="add-run-btn" id="add-run-btn">+ Run</button>
       </div>
@@ -308,10 +321,11 @@ function resetRunSlots() {
 
 // ===== Session Panel =====
 function renderSessionPanel() {
-  const date = document.getElementById('date').value;
-  const type = document.getElementById('type').value;
+  const date     = document.getElementById('date').value;
+  const type     = document.getElementById('type').value;
+  const bikeType = document.getElementById('session-bike-type').value;
 
-  const sessionEntries = getSessionEntries(date, type);
+  const sessionEntries = getSessionEntries(date, type, bikeType);
 
   if (!sessionEntries.length) {
     sessionSummary.textContent = 'No runs logged yet for this session';
@@ -319,11 +333,12 @@ function renderSessionPanel() {
     return;
   }
 
-  const avg   = average(sessionEntries);
-  const count = sessionEntries.length;
-  const label = type === 'block' ? 'block starts' : 'gate starts';
+  const avg      = average(sessionEntries);
+  const count    = sessionEntries.length;
+  const typeLabel = type === 'block' ? 'block starts' : 'gate starts';
+  const bikeLabel = bikeType === 'cruiser' ? 'Cruiser' : 'Class';
   sessionSummary.innerHTML =
-    `<strong>${count}</strong> ${label} &nbsp;·&nbsp; Avg <strong>${fmt(avg)}</strong>`;
+    `<strong>${count}</strong> ${typeLabel} · ${bikeLabel} &nbsp;·&nbsp; Avg <strong>${fmt(avg)}</strong>`;
 
   const ordered = [...sessionEntries].reverse();
   sessionList.innerHTML = ordered.map((e, i) =>
@@ -331,15 +346,16 @@ function renderSessionPanel() {
   ).join('');
 }
 
-function getSessionEntries(date, type) {
-  return entries.filter(e => e.date === date && e.type === type);
+function getSessionEntries(date, type, bikeType) {
+  return entries.filter(e => e.date === date && e.type === type && (e.bike_type || 'class') === bikeType);
 }
 
 // ===== History Tab =====
 function renderHistoryTab() {
-  const filtered = filterByPeriod(entries, currentPeriod);
-  renderStats(filtered);
-  renderHistoryList(filtered);
+  const filtered     = filterByPeriod(entries, currentPeriod);
+  const bikeFiltered = filterByBikeType(filtered, currentBikeType);
+  renderStats(bikeFiltered);
+  renderHistoryList(bikeFiltered);
 }
 
 function renderStats(list) {
@@ -425,6 +441,11 @@ function average(list) {
 function pr(list) {
   if (!list.length) return null;
   return list.reduce((best, e) => (e.time_sec < best.time_sec ? e : best));
+}
+
+function filterByBikeType(list, bikeType) {
+  if (bikeType === 'all') return list;
+  return list.filter(e => (e.bike_type || 'class') === bikeType);
 }
 
 // ===== Period / Grouping Helpers =====

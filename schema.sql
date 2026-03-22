@@ -5,12 +5,16 @@ CREATE TABLE IF NOT EXISTS entries (
   id          TEXT  PRIMARY KEY,
   user_id     TEXT  NOT NULL,
   type        TEXT  NOT NULL CHECK (type IN ('sprint', 'block')),
+  bike_type   TEXT  NOT NULL DEFAULT 'class' CHECK (bike_type IN ('class', 'cruiser')),
   time_sec    REAL  NOT NULL CHECK (time_sec > 0),
   date        TEXT  NOT NULL,
   location    TEXT  NOT NULL DEFAULT '',
   notes       TEXT  NOT NULL DEFAULT '',
   created_at  TEXT  NOT NULL
 );
+
+-- Migration for existing databases (run once if upgrading):
+-- ALTER TABLE entries ADD COLUMN bike_type TEXT NOT NULL DEFAULT 'class' CHECK (bike_type IN ('class', 'cruiser'));
 
 CREATE INDEX IF NOT EXISTS idx_entries_user_id    ON entries (user_id);
 CREATE INDEX IF NOT EXISTS idx_entries_created_at ON entries (created_at DESC);
