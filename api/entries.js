@@ -22,7 +22,7 @@ async function handleGet(req, res) {
   }
 
   const { rows } = await sql`
-    SELECT id, user_id, type, time_sec, date, location, notes, created_at
+    SELECT id, user_id, type, bike_type, time_sec, date, location, notes, created_at
     FROM   entries
     WHERE  user_id = ${userId}
     ORDER  BY created_at DESC
@@ -31,10 +31,11 @@ async function handleGet(req, res) {
   return res.status(200).json(rows);
 }
 
-// POST /api/entries  { userId, type, timeSec, date, location?, notes? }
+// POST /api/entries  { userId, type, bikeType?, timeSec, date, location?, notes? }
 async function handlePost(req, res) {
   const body = req.body ?? {};
   const { userId, type, timeSec, date } = body;
+  const bikeType = ['class', 'cruiser'].includes(body.bikeType) ? body.bikeType : 'class';
   const location = (body.location ?? '').toString().trim();
   const notes    = (body.notes    ?? '').toString().trim();
 
@@ -58,9 +59,9 @@ async function handlePost(req, res) {
   const createdAt = new Date().toISOString();
 
   const { rows } = await sql`
-    INSERT INTO entries (id, user_id, type, time_sec, date, location, notes, created_at)
-    VALUES (${id}, ${userId}, ${type}, ${timeNum}, ${date}, ${location}, ${notes}, ${createdAt})
-    RETURNING id, user_id, type, time_sec, date, location, notes, created_at
+    INSERT INTO entries (id, user_id, type, bike_type, time_sec, date, location, notes, created_at)
+    VALUES (${id}, ${userId}, ${type}, ${bikeType}, ${timeNum}, ${date}, ${location}, ${notes}, ${createdAt})
+    RETURNING id, user_id, type, bike_type, time_sec, date, location, notes, created_at
   `;
 
   return res.status(201).json(rows[0]);

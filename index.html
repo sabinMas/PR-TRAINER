@@ -83,6 +83,14 @@
             </div>
 
             <div class="field">
+              <label for="session-bike-type">Bike</label>
+              <select id="session-bike-type" name="session-bike-type">
+                <option value="class">Class</option>
+                <option value="cruiser">Cruiser</option>
+              </select>
+            </div>
+
+            <div class="field">
               <label for="date">Date</label>
               <input type="date" id="date" name="date" required />
             </div>
@@ -100,10 +108,10 @@
                 <input
                   type="number"
                   class="run-input"
-                  step="0.01"
-                  min="0.01"
+                  step="0.0001"
+                  min="0.0001"
                   inputmode="decimal"
-                  placeholder="34.52"
+                  placeholder="34.5210"
                 />
                 <button type="button" class="add-run-btn" id="add-run-btn">+ Run</button>
               </div>
@@ -136,6 +144,12 @@
         <button class="period-btn active" data-period="7d">Last 7 days</button>
         <button class="period-btn" data-period="30d">Last 30 days</button>
         <button class="period-btn" data-period="all">All time</button>
+      </div>
+
+      <div class="bike-filter">
+        <button class="bike-btn active" data-bike="all">All</button>
+        <button class="bike-btn" data-bike="class">Class</button>
+        <button class="bike-btn" data-bike="cruiser">Cruiser</button>
       </div>
 
       <section class="card" id="stats-section">

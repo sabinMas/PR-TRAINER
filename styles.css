@@ -476,6 +476,34 @@ button[type="submit"]:disabled {
   color: #ffffff;
 }
 
+/* ===== Bike Filter ===== */
+.bike-filter {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 0 0;
+}
+
+.bike-btn {
+  flex: 1;
+  padding: 0.45rem 0.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.bike-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
 /* ===== History Section ===== */
 #history-section h2 {
   padding: 0.75rem 0.1rem 0.5rem;
