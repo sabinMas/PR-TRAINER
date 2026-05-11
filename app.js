@@ -22,6 +22,7 @@ let currentTab = 'log';
 let currentPeriod = '7d';
 let runCount = 1;
 const MAX_RUNS = 10;
+let editingEntryId = null;
 
 // login form mode: 'login' | 'register'
 let authMode = 'login';
@@ -326,13 +327,91 @@ function renderSessionPanel() {
     `<strong>${count}</strong> ${label} &nbsp;·&nbsp; Avg <strong>${fmt(avg)}</strong>`;
 
   const ordered = [...sessionEntries].reverse();
-  sessionList.innerHTML = ordered.map((e, i) =>
-    `<li><span class="session-num">${i + 1}</span><span class="session-time">${fmt(e.time_sec)}</span>${e.notes ? `<span class="session-note">${esc(e.notes)}</span>` : ''}</li>`
-  ).join('');
+  sessionList.innerHTML = ordered.map((e, i) => {
+    if (editingEntryId === e.id) {
+      return `<li class="session-item editing" data-entry-id="${e.id}">
+                <span class="session-num">${i + 1}</span>
+                <input type="number" class="session-edit-input" step="0.0001" min="0.0001" value="${e.time_sec}" />
+                <button class="session-save-btn">Save</button>
+                <button class="session-cancel-btn">Cancel</button>
+              </li>`;
+    }
+    return `<li class="session-item" data-entry-id="${e.id}"><span class="session-num">${i + 1}</span><span class="session-time">${fmt(e.time_sec)}</span>${e.notes ? `<span class="session-note">${esc(e.notes)}</span>` : ''}</li>`;
+  }).join('');
+
+  attachSessionListeners();
 }
 
 function getSessionEntries(date, type) {
   return entries.filter(e => e.date === date && e.type === type);
+}
+
+function attachSessionListeners() {
+  sessionList.querySelectorAll('.session-item').forEach(item => {
+    if (!item.classList.contains('editing')) {
+      item.addEventListener('click', () => startEditEntry(item.dataset.entryId));
+    }
+  });
+
+  sessionList.querySelectorAll('.session-save-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const li = btn.closest('.session-item');
+      const newTime = parseFloat(li.querySelector('.session-edit-input').value);
+      saveEditEntry(li.dataset.entryId, newTime);
+    });
+  });
+
+  sessionList.querySelectorAll('.session-cancel-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      cancelEditEntry();
+    });
+  });
+
+  const editInput = sessionList.querySelector('.session-edit-input');
+  if (editInput) editInput.focus();
+}
+
+function startEditEntry(entryId) {
+  editingEntryId = entryId;
+  renderSessionPanel();
+}
+
+async function saveEditEntry(entryId, newTime) {
+  if (isNaN(newTime) || newTime <= 0) {
+    alert('Please enter a valid positive time.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/entries/${entryId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: USER_ID, timeSec: newTime }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.error || 'Failed to save entry.');
+      return;
+    }
+
+    const updated = await res.json();
+    const idx = entries.findIndex(e => e.id === entryId);
+    if (idx >= 0) entries[idx] = updated;
+
+    editingEntryId = null;
+    renderSessionPanel();
+    renderHistoryTab();
+  } catch (err) {
+    alert('Could not save entry. Check your connection and try again.');
+  }
+}
+
+function cancelEditEntry() {
+  editingEntryId = null;
+  renderSessionPanel();
 }
 
 // ===== History Tab =====
@@ -462,7 +541,7 @@ function groupEntriesByMonth(list) {
 
 // ===== Format Helpers =====
 function fmt(sec) {
-  return sec.toFixed(2) + 's';
+  return sec.toFixed(4) + 's';
 }
 
 function fmtDate(str) {

@@ -620,6 +620,67 @@ button[type="submit"]:disabled {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ===== Session Edit Mode ===== */
+.session-item {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.session-item:not(.editing):hover {
+  background: rgba(139,26,46,0.04);
+  border-radius: 4px;
+  margin: 0 -0.5rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.session-item.editing {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.session-edit-input {
+  flex: 1;
+  padding: 0.5rem 0.65rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.session-save-btn,
+.session-cancel-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.session-save-btn {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.session-save-btn:active {
+  background: var(--accent-dark);
+}
+
+.session-cancel-btn {
+  background: var(--border);
+  color: var(--text);
+}
+
+.session-cancel-btn:active {
+  background: #bbb9b4;
+}
+
 /* ===== Responsive tweaks ===== */
 @media (max-width: 360px) {
   .stats-grid {

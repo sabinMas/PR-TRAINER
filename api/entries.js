@@ -6,6 +6,7 @@ module.exports = async function handler(req, res) {
   try {
     if (req.method === 'GET')  return await handleGet(req, res);
     if (req.method === 'POST') return await handlePost(req, res);
+    if (req.method === 'PUT')  return await handlePut(req, res);
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
     console.error('[entries]', err);
@@ -63,4 +64,54 @@ async function handlePost(req, res) {
   `;
 
   return res.status(201).json(rows[0]);
+}
+
+// PUT /api/entries/:id  { userId, timeSec }
+async function handlePut(req, res) {
+  const { id } = req.query;
+  const body = req.body ?? {};
+  const { userId, timeSec } = body;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Entry ID is required' });
+  }
+
+  if (!userId) {
+    return res.status(400).json({ error: 'userId is required' });
+  }
+
+  if (timeSec == null) {
+    return res.status(400).json({ error: 'timeSec is required' });
+  }
+
+  const timeNum = parseFloat(timeSec);
+  if (isNaN(timeNum) || timeNum <= 0) {
+    return res.status(400).json({ error: 'timeSec must be a positive number' });
+  }
+
+  try {
+    const { rows: existingRows } = await sql`
+      SELECT user_id FROM entries WHERE id = ${id}
+    `;
+
+    if (!existingRows.length) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    if (existingRows[0].user_id !== userId) {
+      return res.status(403).json({ error: 'You do not have permission to update this entry' });
+    }
+
+    const { rows } = await sql`
+      UPDATE entries
+      SET time_sec = ${timeNum}
+      WHERE id = ${id}
+      RETURNING id, user_id, type, time_sec, date, location, notes, created_at
+    `;
+
+    return res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error('[entries PUT]', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 }
