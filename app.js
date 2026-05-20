@@ -487,32 +487,81 @@ function renderHistoryList(list) {
     : groupEntriesByDate(list);
 
   historyListEl.innerHTML = grouped.map(({ label, sprints, blocks }) => {
-    const sprintRow = sprints.length
-      ? `<div class="day-stat-row">
-           <span class="entry-badge badge-sprint">Gate Start</span>
-           <span class="day-count">${sprints.length} runs</span>
-           <span class="day-avg">Avg ${fmt(average(sprints))}</span>
-           <span class="day-pr">PR ${fmt(pr(sprints).time_sec)}</span>
-         </div>`
-      : '';
-
-    const blockRow = blocks.length
-      ? `<div class="day-stat-row">
-           <span class="entry-badge badge-block">Block Start</span>
-           <span class="day-count">${blocks.length} runs</span>
-           <span class="day-avg">Avg ${fmt(average(blocks))}</span>
-           <span class="day-pr">PR ${fmt(pr(blocks).time_sec)}</span>
-         </div>`
-      : '';
-
+    const sprintSection = sprints.length
+      ? renderHistoryTypeSection(sprints, 'Gate Start', 'badge-sprint') : '';
+    const blockSection = blocks.length
+      ? renderHistoryTypeSection(blocks, 'Block Start', 'badge-block') : '';
     return `
       <div class="day-card">
         <div class="day-header">${label}</div>
-        ${sprintRow}
-        ${blockRow}
+        ${sprintSection}
+        ${blockSection}
       </div>
     `;
   }).join('');
+
+  attachHistoryListeners();
+}
+
+function renderHistoryTypeSection(runs, label, badgeClass) {
+  const avgVal  = average(runs);
+  const prEntry = pr(runs);
+
+  const runRows = runs.map(e => {
+    if (editingEntryId === e.id) {
+      return `<li class="history-run-item editing" data-entry-id="${e.id}">
+        <input type="number" class="session-edit-input" step="0.0001" min="0.0001" value="${e.time_sec}" />
+        <button class="session-save-btn">Save</button>
+        <button class="session-cancel-btn">Cancel</button>
+      </li>`;
+    }
+    const isPR = prEntry && e.id === prEntry.id;
+    return `<li class="history-run-item" data-entry-id="${e.id}">
+      <span class="history-run-time${isPR ? ' is-pr' : ''}">${fmt(e.time_sec)}</span>
+      ${isPR ? '<span class="history-pr-badge">PR</span>' : ''}
+    </li>`;
+  }).join('');
+
+  return `
+    <div class="history-type-section">
+      <div class="day-stat-row">
+        <span class="entry-badge ${badgeClass}">${label}</span>
+        <span class="day-count">${runs.length} runs</span>
+        <span class="day-avg">Avg ${fmt(avgVal)}</span>
+        <span class="day-pr">PR ${fmt(prEntry.time_sec)}</span>
+      </div>
+      <ol class="history-run-list">${runRows}</ol>
+    </div>
+  `;
+}
+
+function attachHistoryListeners() {
+  historyListEl.querySelectorAll('.history-run-item:not(.editing)').forEach(item => {
+    item.addEventListener('click', () => {
+      editingEntryId = item.dataset.entryId;
+      renderHistoryTab();
+    });
+  });
+
+  historyListEl.querySelectorAll('.history-run-item .session-save-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const li = btn.closest('.history-run-item');
+      const newTime = parseFloat(li.querySelector('.session-edit-input').value);
+      saveEditEntry(li.dataset.entryId, newTime);
+    });
+  });
+
+  historyListEl.querySelectorAll('.history-run-item .session-cancel-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      editingEntryId = null;
+      renderHistoryTab();
+    });
+  });
+
+  const editInput = historyListEl.querySelector('.session-edit-input');
+  if (editInput) editInput.focus();
 }
 
 // ===== Stat Helpers =====

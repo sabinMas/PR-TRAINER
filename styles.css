@@ -709,6 +709,61 @@ button[type="submit"]:disabled {
   background: #bbb9b4;
 }
 
+/* ===== History Run Items ===== */
+.history-type-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.history-run-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.2rem 0 0.1rem 0.5rem;
+}
+
+.history-run-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.history-run-item:not(.editing):hover {
+  background: rgba(139,26,46,0.04);
+}
+
+.history-run-item.editing {
+  padding: 0.4rem;
+}
+
+.history-run-time {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.history-run-time.is-pr {
+  color: var(--accent);
+}
+
+.history-pr-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: #f5e6e9;
+  padding: 0.1rem 0.4rem;
+  border-radius: 99px;
+}
+
 /* ===== Responsive tweaks ===== */
 @media (max-width: 360px) {
   .stats-grid {
